@@ -5,6 +5,7 @@ import argparse
 from glob import glob
 import pickle
 import os
+import sys
 import shutil
 import termcolor
 import requests
@@ -34,17 +35,21 @@ def getListFiles(json_file, filter):
         config = json.load(f)
 
         for data in config:
-            name = data["name"]
+            name = str(data["name"]).lower()
+            if(str(name).find(filter) >= 0):
+                listFiles += data["positive_examples"]
 
-            if name == filter:
-                return  data["positive_examples"]
+    return listFiles
 
 def main():
+
+    mainfile = os.path.abspath(sys.modules['__main__'].__file__)
+    t,h = os.path.split(mainfile)
 
     parser = argparse.ArgumentParser(description="Options");
     parser.add_argument("-s", "--search", help="Keyword for search", action="append", default=None, nargs="*")
     parser.add_argument("-o", "--out", help="Output catalog", default="../youtube_sound")
-    parser.add_argument("-i", "--input",  help="Input file of ontology. JSON file", default='D:\\repo\\ontology\\ontology.json')
+    parser.add_argument("-i", "--input",  help="Input file of ontology. JSON file", default=os.path.normpath(t + '//ontology//ontology.json'))
     parser.add_argument("-l", "--lim_page", help="Limit of page", default=LIMIT_PAGE)
 
     args = parser.parse_args()
@@ -53,7 +58,7 @@ def main():
     keywords = args.search
     lim_page_count = args.lim_page
     output = os.path.normpath(args.out)
-    input = str(args.input)
+    input = os.path.normpath(args.input)
 
     if not os.path.exists(output):
         os.makedirs(output)
@@ -76,6 +81,8 @@ def main():
         raise Exception("Not found keywords")
 
     for keyword in search_tokens:
+
+        keyword = str(keyword).lower()
 
         ls = getListFiles(input,keyword)
 
