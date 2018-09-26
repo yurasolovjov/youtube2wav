@@ -9,6 +9,10 @@ import sys
 import shutil
 import termcolor
 import requests
+import plotly
+import plotly.graph_objs as go
+import json
+import csv
 
 # Ограничение на максимальное количество страниц
 LIMIT_PAGE = int(10)
@@ -51,6 +55,8 @@ def main():
     parser.add_argument("-o", "--out", help="Output catalog", default="../youtube_sound")
     parser.add_argument("-i", "--input",  help="Input file of ontology. JSON file", default=os.path.normpath(t + '//ontology//ontology.json'))
     parser.add_argument("-l", "--lim_page", help="Limit of page", default=LIMIT_PAGE)
+    parser.add_argument("--histogram", help="Create histogram of classes AudioSet(Evaluate,balanced,unbalanced)", default=False, type=bool)
+    parser.add_argument("--dataset", help="Dataset of AudioSet(Evaluate,balanced,unbalanced)")
 
     args = parser.parse_args()
 
@@ -59,6 +65,52 @@ def main():
     lim_page_count = args.lim_page
     output = os.path.normpath(args.out)
     input = os.path.normpath(args.input)
+    histogram = bool(args.histogram)
+    audioset_file = str(args.dataset)
+
+    if histogram == True:
+
+        if not os.path.exists(input) or not os.path.exists(audioset_file):
+            raise Exception("Can not found file")
+
+        with open(audioset_file,'r') as fe:
+            csv_data = csv.reader(fe)
+
+            sx = list()
+
+            with open(input) as f:
+                data = json.load(f)
+
+                for row in csv_data:
+
+                    if row[0][0] == '#':
+                        continue
+
+                    print(str(row))
+
+                    classes = row[3:-1]
+
+                    for cl in classes:
+                        for dt in data:
+
+                            if cl == dt['id']:
+                                sx.append(dt['name'])
+
+            data = [
+                go.Histogram(
+                    histfunc="count",
+                    x=sx,
+                    name="count"
+                ),
+            ]
+
+            plotly.offline.plot({
+                "data": data,
+                "layout": go.Layout(title="Histogram")
+            }, auto_open=True)
+
+        return
+
 
     if not os.path.exists(output):
         os.makedirs(output)
