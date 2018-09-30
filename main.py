@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+
 import youtube_dl
 import json
 import argparse
@@ -16,7 +17,6 @@ import csv
 
 # Ограничение на максимальное количество страниц
 LIMIT_PAGE = int(10)
-
 
 def makeWaveFilesList(catalogs):
 
@@ -86,15 +86,26 @@ def main():
                     if row[0][0] == '#':
                         continue
 
-                    print(str(row))
 
                     classes = row[3:-1]
 
                     for cl in classes:
                         for dt in data:
 
+                            cl = str(cl).strip().replace('"',"")
+
                             if cl == dt['id']:
                                 sx.append(dt['name'])
+
+                                # status_string = "append: "+str(row)
+                                # color = "green"
+
+                            # else:
+                            #     for
+                                # status_string = "not found: "+str(row)
+                                # color = "red"
+
+                            # print(termcolor.colored(status_string, color))
 
             data = [
                 go.Histogram(
