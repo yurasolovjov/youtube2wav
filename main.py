@@ -14,7 +14,7 @@ import plotly
 import plotly.graph_objs as go
 import json
 import csv
-
+from collections import Counter
 # Ограничение на максимальное количество страниц
 LIMIT_PAGE = int(10)
 
@@ -44,6 +44,35 @@ def getListFiles(json_file, filter):
                 listFiles += data["positive_examples"]
 
     return listFiles
+
+def checkData(data, cl):
+
+    flag = False
+
+    name = str("")
+
+    scl = None
+
+    for dt in data:
+        if cl == dt['id']:
+            name = dt['name']
+
+        for d in dt['child_ids']:
+
+            if cl == d:
+                scl = dt['id']
+                flag = True
+                break
+
+        if flag == True:
+            break
+
+    if flag == True:
+        flag,name = checkData(data,scl)
+
+
+    return  flag,name
+
 
 def main():
 
@@ -81,21 +110,30 @@ def main():
             with open(input) as f:
                 data = json.load(f)
 
+                counter = int(0)
+
+
                 for row in csv_data:
 
                     if row[0][0] == '#':
                         continue
 
 
-                    classes = row[3:-1]
+                    classes = row[3:]
+
+                    print(row)
+
 
                     for cl in classes:
                         for dt in data:
 
                             cl = str(cl).strip().replace('"',"")
 
-                            if cl == dt['id']:
+                            if cl == dt['id'] and len(dt['child_ids']) == 0:
                                 sx.append(dt['name'])
+
+                            # if cl == dt['id']:
+                            #     sx.append(dt['name'])
 
                                 # status_string = "append: "+str(row)
                                 # color = "green"
@@ -120,6 +158,7 @@ def main():
                 "layout": go.Layout(title="Histogram")
             }, auto_open=True)
 
+        print(counter)
         return
 
 
